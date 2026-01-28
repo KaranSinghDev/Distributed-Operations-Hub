@@ -23,12 +23,24 @@ The system is a leaderless, peer-to-peer distributed system. Every node can serv
 
 ```mermaid
 graph TD
-    Client([Client]) -->|"1. SET('key', 'value')"| Node2("Node 2 (Gateway)");
-    Node2 -->|"2. Hash & forward"| Node3("Node 3 (Coordinator)");
-    Node3 -->|"3. Write locally"| Storage3((In-Memory Store));
-    Node3 -->|"4. Replicate async"| Node1("Node 1 (Replica)");
-    Node3 -->|"4. Replicate async"| Node2;
-    Node3 -->|"5. Acknowledge success"| Client;
+    subgraph "Client"
+        C([Client])
+    end
+
+    subgraph "Distributed Cache Cluster"
+        N1("Node 1 (Replica)")
+        N2("Node 2 (Gateway)")
+        N3("Node 3 (Coordinator)")
+        N3_Storage[(In-Memory Store)]
+    end
+    
+    C -- "1. SET('my_key', 'value')" --> N2;
+    N2 -- "2. Hash key & forward to Coordinator" --> N3;
+    N3 -- "3. Write data locally" --> N3_Storage;
+    N3 -- "4. Replicate to N-1 successors" --> N1;
+    N3 -- "4. Replicate to N-1 successors" --> N2;
+    N3 -- "5. Acknowledge success" --> N2;
+    N2 -- "6. Return to Client" --> C;
 ```
 
 ## Performance & Resilience
