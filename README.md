@@ -1,6 +1,6 @@
 # Python Distributed Key-Value Store
 
-Ideology: After researching foundational distributed systems like Amazon's DynamoDB and Redis Cluster, I wanted to move beyond theory and implement the core principles of resilience and scale myself. This project is one of the attempts, a **fault-tolerant key-value store built from scratch** to explore how systems can guarantee data safety in the face of network and server failures.
+****Ideology****: After researching foundational distributed systems like Amazon's DynamoDB and Redis Cluster, I wanted to move beyond theory and implement the core principles of resilience and scale myself. This project is one of the attempts, a **fault-tolerant key-value store built from scratch** to explore how systems can guarantee data safety in the face of network and server failures.
 
 The system operates as a cluster of nodes that partition data using consistent hashing, replicate every write for high availability, and communicate using high-performance gRPC. Its resilience is validated by an automated chaos test that proves it can withstand sudden node outages with zero data loss.
 
