@@ -9,3 +9,4 @@ __pycache__/
 # OS-specifici  l
 .DS_Store
 Thumbs.dbvenv/
+kubectl
