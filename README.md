@@ -9,7 +9,7 @@ The system operates as a peer-to-peer cluster that partitions data using **consi
 - **Cloud-Native & Self-Healing**: Deployed on **Kubernetes** using `StatefulSets`. With Liveness/Readiness probes, the cluster can automatically detect and replace failed nodes with zero manual intervention.
 - **Distributed & Fault-Tolerant**: Uses N-way replication to ensure data safety. Resilience is proven by an automated chaos test that validates zero data loss during catastrophic node failures.
 - **High-Performance & Asynchronous**: Built on Python's `asyncio` and `gRPC` to handle thousands of concurrent operations with low latency.
-- **Deeply Observable**: Instrumented with **OpenTelemetry**. Distributed traces are exported to **Jaeger**, allowing for end-to-end request lifecycle analysis to pinpoint latency bottlenecks.
+- **Deeply Observable**: Instrumented with **OpenTelemetry**. Distributed traces are exported to **Jaeger**, allowing for end-to end request lifecycle analysis to pinpoint latency bottlenecks.
 - **Algorithmic Partitioning**: Implements a consistent hashing ring from scratch to intelligently and dynamically distribute data across the cluster.
 
 ## System Architecture
