@@ -6,8 +6,8 @@ The system operates as a peer-to-peer cluster that partitions data using **consi
 
 ## Key Features
 
-- **Cloud-Native & Self-Healing**: Deployed on **Kubernetes** using `StatefulSets`. With Liveness/Readiness probes, the cluster can automatically detect and replace failed nodes with zero manual intervention.
-- **Distributed & Fault-Tolerant**: Uses N-way replication to ensure data safety. Resilience is proven by an automated chaos test that validates zero data loss during catastrophic node failures.
+- **Cloud-Native & Self-Healing**: Deployed on **Kubernetes** using `StatefulSets`. With Liveness/Readiness probes, the cluster can automatically detect and replace failed nodes with minimal manual intervention.
+- **Distributed & Fault-Tolerant**: Uses N-way replication to ensure data safety. Resilience can be checked by an automated chaos test that validates zero data loss during catastrophic node failures.
 - **High-Performance & Asynchronous**: Built on Python's `asyncio` and `gRPC` to handle thousands of concurrent operations with low latency.
 - **Deeply Observable**: Instrumented with **OpenTelemetry**. Distributed traces are exported to **Jaeger**, allowing for end-to end request lifecycle analysis to pinpoint latency bottlenecks.
 - **Algorithmic Partitioning**: Implements a consistent hashing ring from scratch to intelligently and dynamically distribute data across the cluster.
@@ -45,13 +45,13 @@ graph TD
 
 ## Performance & Resilience
 
-Benchmarks were run against a 3-node Kubernetes cluster, simulating a high-concurrency workload of 50 simultaneous clients. The specificaiotns were of a commodity hardware: an Intel i7-12700H (14C/20T) processor, 16GB DDR4 RAM, and a PCIe Gen 4.0 NVMe SSD, all within a WSL2 Ubuntu 22.04 .
+Benchmarks were run against a 3-node Kubernetes cluster, simulating a high-concurrency workload of 50 simultaneous clients. The specifications were of a commodity hardware: an Intel i7-12700H (14C/20T) processor, 16GB DDR4 RAM, and a PCIe Gen 4.0 NVMe SSD, all within a WSL2 Ubuntu 22.04 .
 
 | Metric            | Result            | Analysis                                                                     |
 | ----------------- | ----------------- | ---------------------------------------------------------------------------- |
 | GET Throughput    | ~17,000 ops/sec   | Demonstrates the efficiency of the `asyncio` architecture for I/O-bound tasks. |
 | GET Latency (p99) | < 6 ms            | 99% of read requests completed in under 6ms, even under heavy concurrent load.   |
-| Fault Tolerance   | Zero Data Loss    | Verified by automated chaos tests that terminate live pods during operation.     |
+| Fault Tolerance   | Zero Data Loss    | Verified by automated chaos tests that terminate live pods during operation (simulated nodes).     |
 
 ## Getting Started (Kubernetes)
 
@@ -71,7 +71,7 @@ k3d cluster create cache-cluster
 
 ### 2. Build and Deploy the Cache System
 
-This project is designed to run without an external Docker Hub account.
+This project is designed to run without an external Docker Hub account for now.
 
 ```bash
 # In your project root
@@ -129,4 +129,4 @@ python benchmark.py
 While watching the pods in one terminal (`kubectl get pods -w`), delete a pod in another:```bash
 kubectl delete pod cache-node-1
 ```
-You will see Kubernetes automatically terminate the old pod and create a new, healthy one to take its place.
+You are expected see Kubernetes automatically terminate the old pod and create a new, healthy one to take its place.
