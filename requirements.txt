@@ -13,6 +13,7 @@ importlib_metadata==8.7.1
 multidict==6.7.0
 numpy==2.3.3
 opentelemetry-api==1.39.1
+opentelemetry-distro==0.60b1
 opentelemetry-exporter-otlp==1.39.1
 opentelemetry-exporter-otlp-proto-common==1.39.1
 opentelemetry-exporter-otlp-proto-grpc==1.39.1

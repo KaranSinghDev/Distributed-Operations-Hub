@@ -28,7 +28,7 @@ class ConsistentHashRing:
         nodes = self.get_nodes(key, replica_count=1)
         return nodes[0] if nodes else None
 
-    # --- NEW METHOD ---
+
     def get_nodes(self, key: str, replica_count: int) -> list[str]:
         """
         Finds a list of unique nodes responsible for the given key.

@@ -85,7 +85,7 @@ def add_CacheServiceServicer_to_server(servicer, server):
     server.add_registered_method_handlers('cache.CacheService', rpc_method_handlers)
 
 
- # This class is part of an EXPERIMENTAL API.
+ # This class is part of a EXPERIMENTAL API.
 class CacheService(object):
     """This defines the service itself, which is a collection of RPC methods.
     """

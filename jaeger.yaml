@@ -1,0 +1,40 @@
+# Defines the Jaeger deployment.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - name: jaeger-container
+        image: jaegertracing/all-in-one:latest
+        ports:
+        - containerPort: 16686
+          name: jaeger-ui
+---
+# Defines the network service for Jaeger.
+# ... inside jaeger.yaml ...
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-service
+spec:
+  selector:
+    app: jaeger
+  ports:
+  - name: otlp-grpc 
+    protocol: TCP
+    port: 4317
+    targetPort: 4317
+  - name: jaeger-ui
+    protocol: TCP
+    port: 16686
+    targetPort: 16686

@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: cache-service
 spec:
-  clusterIP: None # This creates a "headless" service, used for StatefulSets
+  clusterIP: None 
   selector:
-    app: cache # This service applies to any pod with the 'app: cache' label
+    app: cache 
   ports:
   - name: grpc
     port: 50051

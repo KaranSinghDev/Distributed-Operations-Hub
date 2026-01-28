@@ -3,8 +3,13 @@ import os
 import asyncio
 import grpc
 
-# Import the aiohttp library
 from aiohttp import web
+from opentelemetry.instrumentation.grpc import GrpcInstrumentorServer
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'generated'))
 from generated import cache_pb2
@@ -12,12 +17,33 @@ from generated import cache_pb2_grpc
 
 from hash_ring import ConsistentHashRing
 
-# --- DELETED --- We no longer need the hardcoded NODE_ADDRESSES list.
-# NODE_ADDRESSES = ["node1:50051", "node2:50052", "node3:50053"]
-
 REPLICATION_FACTOR = 3
 
-# --- Health Check Endpoints for Kubernetes Probes ---
+# --- NEW: OpenTelemetry Setup Function ---
+def setup_telemetry(service_name: str):
+    """Configures and initializes OpenTelemetry tracing."""
+    # 1. Set a "Resource" to identify our service
+    resource = Resource(attributes={
+        "service.name": service_name
+    })
+
+    # 2. Set up the TracerProvider
+    provider = TracerProvider(resource=resource)
+
+    # 3. Configure the OTLP Exporter to send data to our Collector
+    #    The endpoint must match the collector's service name in Kubernetes.
+    exporter = OTLPSpanExporter(endpoint="otel-collector-service:4317", insecure=True)
+    
+    # 4. Use a BatchSpanProcessor to send traces in batches
+    processor = BatchSpanProcessor(exporter)
+    provider.add_span_processor(processor)
+
+    # 5. Set the global TracerProvider
+    trace.set_tracer_provider(provider)
+    print(f"[{service_name}] OpenTelemetry tracing initialized, exporting to otel-collector-service:4317")
+
+
+
 async def health_check(request):
     """Liveness probe: returns OK if the Python process is running."""
     return web.Response(text="OK")
@@ -26,7 +52,6 @@ async def readiness_check(request):
     """Readiness probe: returns OK. Can be extended to check dependencies."""
     return web.Response(text="OK")
 
-# --- Function to start the health server ---
 async def start_health_server(port=8080):
     """Starts the aiohttp server for health checks in the background."""
     app = web.Application()
@@ -43,7 +68,6 @@ class CacheServiceServicer(cache_pb2_grpc.CacheServiceServicer):
     def __init__(self, my_address: str, all_nodes: list[str]):
         self.data = {}
         self.my_address = my_address
-        # IMPORTANT: Initialize the hash ring with the dynamically generated list of all nodes
         self.ring = ConsistentHashRing(all_nodes)
         self.peer_stubs = {}
         print(f"[{self.my_address}] Servicer initialized.")
@@ -91,13 +115,17 @@ class CacheServiceServicer(cache_pb2_grpc.CacheServiceServicer):
         else:
             return cache_pb2.GetResponse(found=False)
 
+# --- NEW: Import the server instrumentor ---
+from opentelemetry.instrumentation.grpc import GrpcInstrumentorServer
 
 async def serve(address: str, all_nodes: list[str]):
+    grpc_server_instrumentor = GrpcInstrumentorServer()
+    grpc_server_instrumentor.instrument()
+
     port = address.split(':')[-1]
     bind_address = f"0.0.0.0:{port}"
 
     server = grpc.aio.server()
-    # Pass the dynamic list of all nodes to the servicer
     cache_pb2_grpc.add_CacheServiceServicer_to_server(CacheServiceServicer(address, all_nodes), server)
     
     server.add_insecure_port(bind_address)
@@ -109,30 +137,26 @@ async def serve(address: str, all_nodes: list[str]):
     
     await server.wait_for_termination()
 
-# --- MODIFIED --- Main execution block is now Kubernetes-aware
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: python server.py <my_address_in_cluster>")
         sys.exit(1)
         
-    my_address = sys.argv[1] # e.g., "cache-node-0.cache-service:50051"
+    my_address = sys.argv[1] 
     
-    # --- Dynamically build the list of all nodes ---
-    # In Kubernetes, StatefulSet pods have predictable, ordered names.
-    my_hostname = my_address.split('.')[0] # e.g., "cache-node-0"
-    service_name = my_address.split('.')[1].split(':')[0] # e.g., "cache-service"
+    my_hostname = my_address.split('.')[0] 
+    service_name = my_address.split('.')[1].split(':')[0] 
     
     all_node_addresses = []
-    # Assumes pod names are like "base-0", "base-1", etc.
-    hostname_base = my_hostname.rsplit('-', 1)[0] # e.g., "cache-node"
+    hostname_base = my_hostname.rsplit('-', 1)[0] 
     
     for i in range(REPLICATION_FACTOR):
-        # Construct the full DNS name for each peer in the StatefulSet
         peer_hostname = f"{hostname_base}-{i}"
         peer_address = f"{peer_hostname}.{service_name}:50051"
         all_node_addresses.append(peer_address)
 
     print(f"My address: {my_address}")
     print(f"All nodes in cluster: {all_node_addresses}")
-    
+
+    setup_telemetry("cache-service")    
     asyncio.run(serve(my_address, all_node_addresses))

@@ -1,26 +1,23 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: cache-node # The base name for our pods
+  name: cache-node 
 spec:
-  serviceName: "cache-service" # This must match the name in service.yaml
-  replicas: 3 # We want a 3-node cluster
+  serviceName: "cache-service" 
+  replicas: 3 
   selector:
     matchLabels:
-      app: cache # Pods with this label belong to this StatefulSet
+      app: cache 
   template:
     metadata:
       labels:
-        app: cache # Label our pods so the StatefulSet can find them
+        app: cache
     spec:
       containers:
       - name: cache-container
-        image: my-cache-image:local # A simple, local-only image name
+        image: my-cache-image:local 
         imagePullPolicy: Never 
         command: ["python", "server.py"]
-        # We dynamically figure out our address.
-        # The pod name will be "cache-node-0", "cache-node-1", etc.
-        # We pass this to the server as an argument.
         args: ["$(POD_NAME).cache-service:50051"]
         env:
         - name: POD_NAME
@@ -33,13 +30,13 @@ spec:
         - containerPort: 8080
           name: http-health
         
-        # --- This is where we connect our health probes ---
+
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 8080 # The port our aiohttp server is running on
-          initialDelaySeconds: 5 # Wait 5s before first check
-          periodSeconds: 10 # Check every 10s
+            port: 8080 
+          initialDelaySeconds: 5 
+          periodSeconds: 10 
         readinessProbe:
           httpGet:
             path: /readyz

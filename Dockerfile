@@ -8,7 +8,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# First, install system dependencies like the protobuf compiler.
+#  install system dependencies like the protobuf compiler.
 RUN apt-get update && apt-get install -y protobuf-compiler
 
 # Copy the requirements file and install Python dependencies.

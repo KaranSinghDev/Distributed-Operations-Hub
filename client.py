@@ -22,7 +22,7 @@ async def run(connect_to_address: str):
         key = "my_special_key"
         value = f"this_data_is_replicated".encode('utf-8')
         
-        # Find the list of nodes that should store this key.
+        #  the list of nodes that should store this key.
         target_nodes = ring.get_nodes(key, REPLICATION_FACTOR)
         print(f"\nSetting key='{key}'. This key should be replicated to: {target_nodes}")
         
@@ -48,5 +48,5 @@ async def run(connect_to_address: str):
                     assert False, "Key should have been found on all replicas"
 
 if __name__ == '__main__':
-    connect_to = NODE_ADDRESSES[0] # Default to the first node
+    connect_to = NODE_ADDRESSES[0
     asyncio.run(run(connect_to))
