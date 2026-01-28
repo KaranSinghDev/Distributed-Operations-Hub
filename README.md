@@ -33,7 +33,7 @@ graph TD
 
 ## Performance & Resilience
 
-Benchmarks were run against a 3-node Kubernetes cluster, simulating a high-concurrency workload of 50 simultaneous clients.
+Benchmarks were run against a 3-node Kubernetes cluster, simulating a high-concurrency workload of 50 simultaneous clients. The specificaiotns were of a commodity hardware: an Intel i7-12700H (14C/20T) processor, 16GB DDR4 RAM, and a PCIe Gen 4.0 NVMe SSD, all within a WSL2 Ubuntu 22.04 .
 
 | Metric            | Result            | Analysis                                                                     |
 | ----------------- | ----------------- | ---------------------------------------------------------------------------- |
