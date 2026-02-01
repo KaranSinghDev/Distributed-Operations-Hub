@@ -114,4 +114,4 @@ docker exec -it postgres_db psql -U admin -d cache_db -c "SELECT key, created_at
 
 ## License
 
-This project is provided as-is for educational and demonstration purposes.
+This project is licensed under the MIT License.
