@@ -23,29 +23,37 @@ The system is a leaderless, peer-to-peer distributed system. Every node can serv
     *   **Read Path**: Cache misses trigger an asynchronous HTTP call to the **Legacy API**. If found, the data is returned to the client and populated into the cache.
 
 ### Architecture Diagram
-
 ```mermaid
 graph TD
     subgraph "External Systems"
         DB[(PostgreSQL)]
-        Legacy[Legacy REST API]
+        LegacyAPI[Legacy REST API]
     end
 
     subgraph "Distributed Cache Cluster"
-        N1("Node 1")
-        N2("Node 2 (Coordinator)")
-        N3("Node 3")
+        Node2("Node 2 (Coordinator)")
+        Node1("Node 1 (Replica)")
+        Node3("Node 3 (Replica)")
     end
     
-    Client -- "SET('key', 'val')" --> N2
-    N2 -- "1. Persist to Disk" --> DB
-    N2 -- "2. Replicate (gRPC)" --> N1
-    N2 -- "2. Replicate (gRPC)" --> N3
-    
-    Client -- "GET('missing_key')" --> N2
-    N2 -- "Cache Miss? Fetch via HTTP" --> Legacy
-    Legacy -- "Return JSON" --> N2
-    N2 -- "Return Data" --> Client
+    Client([Client])
+
+    style DB fill:#cde4ff,stroke:#6699ff,stroke-width:2px
+    style LegacyAPI fill:#ffe6cc,stroke:#ff9933,stroke-width:2px
+
+    subgraph "Write Path (Durability)"
+        Client -- "SET('key', 'val')" --> Node2
+        Node2 -- "1. Persist to Disk" --> DB
+        Node2 -- "2. Replicate (gRPC)" --> Node1
+        Node2 -- "2. Replicate (gRPC)" --> Node3
+    end
+
+    subgraph "Read Path (Migration)"
+        Client -- "GET('missing_key')" --> Node2
+        Node2 -- "Cache Miss? Fetch via HTTP" --> LegacyAPI
+        LegacyAPI -- "Return JSON" --> Node2
+        Node2 -- "Return Data" --> Client
+    end
 ```
 
 ## Benchmark & Resilience Analysis
