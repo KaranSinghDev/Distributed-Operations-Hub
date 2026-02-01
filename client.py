@@ -9,7 +9,8 @@ from generated import cache_pb2_grpc
 
 from hash_ring import ConsistentHashRing
 
-NODE_ADDRESSES = ["node1:50051", "node2:50052", "node3:50053"]
+# We use localhost because we are running this script from the HOST machine,
+NODE_ADDRESSES = ["localhost:50051", "localhost:50052", "localhost:50053"]
 REPLICATION_FACTOR = 3
 
 async def run(connect_to_address: str):
@@ -48,5 +49,5 @@ async def run(connect_to_address: str):
                     assert False, "Key should have been found on all replicas"
 
 if __name__ == '__main__':
-    connect_to = NODE_ADDRESSES[0
+    connect_to = NODE_ADDRESSES[0] 
     asyncio.run(run(connect_to))

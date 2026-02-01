@@ -1,6 +1,41 @@
 services:
+  # --- Feature 1: Legacy API ---
+  legacy_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.legacy
+    container_name: legacy_api
+    ports:
+      - "8001:8001"
+    networks:
+      - cache-net
+
+  # --- Feature 2: PostgreSQL Database ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: cache_db
+    ports:
+      - "5432:5432"
+    networks:
+      - cache-net
+    volumes:
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d cache_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Cache Cluster ---
   base-node: &base-node
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - cache-net
 
@@ -20,7 +55,7 @@ services:
 
   node3:
     <<: *base-node
-    container_name: node3  
+    container_name: node3
     command: python server.py node3:50053
     ports:
       - "50053:50053"
