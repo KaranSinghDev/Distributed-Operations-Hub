@@ -1,12 +1,37 @@
-# Python virtual environment and cache
+# Python Virtual Environment
 venv/
+
+# Python bytecode and cache files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# IDE-specific files
+# Generated code (can be recreated from the .proto file)
+# This keeps the repository focused on source code, not compiled artifacts.
+generated/
+
+# Environment variables and secrets
+# NEVER commit your API keys or passwords!
+.env
+*.env
+
+# IDE and editor configuration
 .vscode/
+.idea/
 
-# OS-specifici  l
+# OS-generated files
 .DS_Store
-Thumbs.dbvenv/
+Thumbs.db
 kubectl
+
+
+# Build and distribution artifacts
+build/
+dist/
+*.egg-info/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
