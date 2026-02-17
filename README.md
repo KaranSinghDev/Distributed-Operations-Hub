@@ -17,7 +17,7 @@ The system operates as a peer-to-peer cluster that partitions data using **consi
 The system is a leaderless, peer-to-peer distributed system. Every node can serve any client request, acting as a coordinator for that specific request.
 
 1.  **Consistent Hashing**: Determines which node owns a key to minimize data reshuffling.
-2.  **N-Way Replication**: Replicates data across N nodes in parallel.
+2.  **N-Way Replication**: Replicates data acros N nodes in parallel.
 3.  **Migration Logic**:
     *   **Write Path**: Writes are committed to the **PostgreSQL** database immediately for durability.
     *   **Read Path**: Cache misses trigger an asynchronous HTTP call to the **Legacy API**. If found, the data is returned to the client and populated into the cache.
