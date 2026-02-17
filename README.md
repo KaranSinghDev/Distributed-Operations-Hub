@@ -109,7 +109,7 @@ python test_legacy.py
 # Expected Output: "✅ SUCCESS: Fetched data from Legacy API!"
 ```
 
-**Test C: Database Persistence (Write-Through)**
+***Test C: Database Persistence (Write-Through)***
 Verifies that data is being persisted to the PostgreSQL database in real-time.
 ```bash
 # 1. Write data to the cache
