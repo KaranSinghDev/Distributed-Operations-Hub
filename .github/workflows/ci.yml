@@ -1,0 +1,76 @@
+name: Distributed System CI/CD
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: Code Quality and Protobuf Compilation
+  # ------------------------------------------------------------------
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies for linting and proto generation
+        run: |
+          python -m pip install --upgrade pip
+          pip install grpcio-tools flake8
+
+      - name: Lint Python Code
+        # Checks for basic syntax errors and style issues
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Compile gRPC Protobufs
+        # Verifies that your .proto file is valid
+        run: |
+          python -m grpc_tools.protoc -I./proto --python_out=./generated --grpc_python_out=./generated ./proto/cache.proto
+
+  # ------------------------------------------------------------------
+  # JOB 2: Full System Integration and Chaos Testing
+  # ------------------------------------------------------------------
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: code-quality # Only run if code is clean
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        # Needed for the test scripts
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Test Dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Start Full System via Docker Compose
+        # --detach runs in the background
+        # --wait ensures we only proceed after healthchecks pass
+        run: docker compose up --build --detach --wait
+
+      - name: Verify Containers are Running
+        run: docker compose ps
+
+      - name: Run Legacy Fetch Test
+        # Runs your script to test if the legacy API is bridged correctly
+        run: python test_legacy.py
+
+      - name: Run Chaos Test
+        # Runs your script to test system resilience
+        run: python chaos_test.py
+      
+      - name: Teardown System
+        # Always runs, even if tests fail, to clean up the runner
+        if: always()
+        run: docker compose down
