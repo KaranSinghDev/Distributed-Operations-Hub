@@ -67,7 +67,9 @@ jobs:
         run: python test_legacy.py
 
       - name: Run Chaos Test
-        # Runs your script to test system resilience
+        # Overriding DOCKER_HOST at the step level fixes the library crash
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
         run: python chaos_test.py
       
       - name: Teardown System and Print Logs

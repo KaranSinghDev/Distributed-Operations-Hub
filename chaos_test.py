@@ -23,13 +23,22 @@ async def run_chaos_test():
 
     hash_ring = ConsistentHashRing(list(CONTAINER_NAMES.values()), replicas=256)
     
-    # --- CRITICAL FIX: Explicitly connect to the Docker socket ---
     try:
+        # 1. Try connecting via the standard Unix socket directly
         docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    except Exception as e:
-        print(f"❌ FAILED: Could not connect to Docker daemon. Is Docker running? Error: {e}")
-        sys.exit(1)
-
+        docker_client.version() # Ping the server to verify connection
+    except Exception:
+        try:
+            # 2. Fallback: Forcefully purge DOCKER_HOST and try from_env
+            if "DOCKER_HOST" in os.environ:
+                del os.environ["DOCKER_HOST"]
+            docker_client = docker.from_env()
+            docker_client.version()
+        except Exception as e:
+            print(f"❌ FAILED: Final attempt to connect to Docker daemon failed: {e}")
+            sys.exit(1)
+    
+    print("✅ Successfully connected to Docker daemon.")
 
     # --- Step 1: Write data to the cluster ---
     replicas = hash_ring.get_nodes(KEY, replication_factor=3)
