@@ -93,6 +93,5 @@ async def run_chaos_test():
         if not success:
             sys.exit(1)
 
-
 if __name__ == '__main__':
-    asyncio.run(run_chaos_test())
+    asyncio.run(run_chaos_test()) 

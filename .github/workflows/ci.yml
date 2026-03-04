@@ -70,7 +70,9 @@ jobs:
         # Runs your script to test system resilience
         run: python chaos_test.py
       
-      - name: Teardown System
-        # Always runs, even if tests fail, to clean up the runner
+      - name: Teardown System and Print Logs
         if: always()
-        run: docker compose down
+        run: |
+          echo "=== CONTAINER LOGS (For Debugging) ==="
+          docker compose logs
+          docker compose down
