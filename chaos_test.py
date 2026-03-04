@@ -22,7 +22,14 @@ async def run_chaos_test():
     print("==================================================\n")
 
     hash_ring = ConsistentHashRing(list(CONTAINER_NAMES.values()), replicas=256)
-    docker_client = docker.from_env()
+    
+    # --- CRITICAL FIX: Explicitly connect to the Docker socket ---
+    try:
+        docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    except Exception as e:
+        print(f"❌ FAILED: Could not connect to Docker daemon. Is Docker running? Error: {e}")
+        sys.exit(1)
+
 
     # --- Step 1: Write data to the cluster ---
     replicas = hash_ring.get_nodes(KEY, replication_factor=3)
@@ -37,7 +44,7 @@ async def run_chaos_test():
         print(" -> SET successful. Data is replicated.\n")
     except grpc.aio.AioRpcError as e:
         print(f"❌ FAILED: Could not set initial key. {e.details()}")
-        return
+        sys.exit(1)
 
     # --- Step 2: Kill a random replica node ---
     node_to_kill_container = random.choice(replicas)
@@ -49,14 +56,13 @@ async def run_chaos_test():
         await asyncio.sleep(5)
     except docker.errors.NotFound:
         print(f"❌ FAILED: Could not find container '{node_to_kill_container}' to kill.")
-        return
+        sys.exit(1)
 
     # --- Step 3: Read data from a surviving node ---
-    # CRITICAL FIX: Identify a survivor and connect to it.
     survivors = [addr for addr in NODE_ADDRESSES if CONTAINER_NAMES[addr] != node_to_kill_container]
     if not survivors:
         print("❌ FAILED: No surviving nodes to connect to.")
-        return
+        sys.exit(1)
 
     survivor_address = random.choice(survivors)
     print(f"[Step 3] Connecting to a surviving node '{survivor_address}' to GET key='{KEY}'")
@@ -84,17 +90,9 @@ async def run_chaos_test():
         except Exception as e:
             print(f"Warning: could not restart killed node. {e}")
         
-        # This will make the GitHub Action fail if the test logic failed.
         if not success:
             sys.exit(1)
 
 
 if __name__ == '__main__':
-    # Add the 'docker' library to requirements for chaos test
-    try:
-        import docker
-    except ImportError:
-        print("Error: 'docker' library not found. Please run 'pip install docker'.")
-        sys.exit(1)
-        
     asyncio.run(run_chaos_test())
