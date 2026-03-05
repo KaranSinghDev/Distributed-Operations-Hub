@@ -2,9 +2,9 @@ name: Distributed Cache CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "master", "Build" ]
+    branches: ["Release", "Build" ]
   pull_request:
-    branches: [ "main", "master", "Build" ]
+    branches: ["Release", "Build" ]
 
 jobs:
   # Job 1: Quick code quality and build verification
